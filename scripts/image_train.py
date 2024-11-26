@@ -3,7 +3,13 @@ Train a diffusion model on images.
 """
 import sys
 import os
-sys.path.append(os.path.abspath('/kaggle/working/BC_DPM/guided_diffusion'))
+#sys.path.append(os.path.abspath('/kaggle/working/BC_DPM/guided_diffusion'))
+# Dynamically add the path to 'guided_diffusion' directory
+current_dir = os.path.dirname(os.path.abspath(__file__))  # Path of the current script
+parent_dir = os.path.join(current_dir, "../")  # Parent directory of the script
+guided_diffusion_path = os.path.join(parent_dir, "guided_diffusion")  # Path to guided_diffusion directory
+if guided_diffusion_path not in sys.path:
+    sys.path.append(guided_diffusion_path)
 import argparse
 
 from guided_diffusion import dist_util, logger

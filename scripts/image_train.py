@@ -3,7 +3,7 @@ Train a diffusion model on images.
 """
 import sys
 import os
-sys.path.append(os.path.abspath('./'))
+sys.path.append(os.path.abspath('/kaggle/working/BC_DPM/guided_diffusion'))
 import argparse
 
 from guided_diffusion import dist_util, logger

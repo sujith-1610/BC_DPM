@@ -4,7 +4,7 @@ Train a diffusion model on images.
 import sys
 import os
 #sys.path.append(os.path.abspath('/content/guided-diffusion'))
-sys.path.append('')
+sys.path.append('/kaggle/working/guided-diffusion')
 import argparse
 
 from guided_diffusion import dist_util, logger

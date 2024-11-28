@@ -15,6 +15,7 @@ import scipy.io
 import cv2
 
 from .nn import mean_flat
+from scipy.sparse import coo_matrix
 from .losses import normal_kl, discretized_gaussian_log_likelihood
 from .vgg import VGGPerceptualLoss
 from scipy.ndimage import gaussian_filter

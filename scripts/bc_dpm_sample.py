@@ -1,5 +1,6 @@
 import sys
 import os
+import resizer
 #sys.path.append(os.path.abspath('./'))
 sys.path.append('/kaggle/working/guided-diffusion')
 
@@ -69,8 +70,8 @@ def main():
 
     shape = (args.batch_size, 3, args.image_size, args.image_size)
     shape_d = (args.batch_size, 3, int(args.image_size / args.down_N), int(args.image_size / args.down_N))
-    down = Resizer(shape, 1 / args.down_N).to(next(model.parameters()).device)
-    up = Resizer(shape_d, args.down_N).to(next(model.parameters()).device)
+    down = rezizer.Resizer(shape, 1 / args.down_N).to(next(model.parameters()).device)
+    up = resizer.Resizer(shape_d, args.down_N).to(next(model.parameters()).device)
     resizers = (down, up)
 
     logger.log("loading data...")

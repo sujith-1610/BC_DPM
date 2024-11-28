@@ -26,6 +26,8 @@ if 'S' in lmat.keys():
     S = lmat['S']
 else:
     S = lmat['A']
+else:
+    S = lmat['img']
 S_coo = S.tocoo()  # COO
 
 def generate_sino_witout_map(system, xtrue):

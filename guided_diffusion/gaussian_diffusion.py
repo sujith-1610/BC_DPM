@@ -21,7 +21,7 @@ from scipy.ndimage import gaussian_filter
 
 vgg = VGGPerceptualLoss()
 
-lmat = scipy.io.loadmat('./put system matrix here')
+lmat = scipy.io.loadmat('/kaggle/input/lpet-new/test_mat_2')
 if 'S' in lmat.keys():
     S = lmat['S']
 else:

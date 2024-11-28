@@ -24,8 +24,8 @@ vgg = VGGPerceptualLoss()
 lmat = scipy.io.loadmat('/kaggle/input/lpet-new/test_mat_2/test_mat_2/100_20220705_3_20220705_173034_104.mat')
 if 'S' in lmat.keys():
     S = lmat['S']
-else if:
-    S = lmat['A']
+#else:
+#    S = lmat['A']
 else:
     S = lmat['img']
 S_coo = S.tocoo()  # COO

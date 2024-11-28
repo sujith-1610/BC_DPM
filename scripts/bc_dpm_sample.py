@@ -1,10 +1,11 @@
 import sys
 import os
-import resizer
+
 #sys.path.append(os.path.abspath('./'))
 sys.path.append('/kaggle/working/BC_DPM')
 
 print(sys.path)
+import resizer
 
 
 import argparse

@@ -29,6 +29,7 @@ if 'S' in lmat.keys():
 #    S = lmat['A']
 else:
     S = lmat['img']
+S = np.squeeze(S)
 # Assuming S is a dense numpy array
 S_sparse = coo_matrix(S)
 S_coo = S_sparse.tocoo()  # COO

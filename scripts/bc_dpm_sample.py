@@ -59,8 +59,8 @@ def main():
         dist_util.load_state_dict(args.model_path, map_location="cpu")
     )
     model.to(dist_util.dev())
-    if args.use_fp16:
-        model.convert_to_fp16()
+    #if args.use_fp16:
+        #model.convert_to_fp16()
 
     # Convert the model to float16 precision if using fp16
     if args.use_fp16:

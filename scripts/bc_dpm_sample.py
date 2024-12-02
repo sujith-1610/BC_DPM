@@ -124,8 +124,8 @@ def create_argparser():
         range_t=0,
         use_ddim=False,
         base_samples="",
-        model_path="/kaggle/working/output",
-        save_dir="/kaggle/working",
+        model_path="/kaggle/working/output/model.pth",
+        save_dir="/kaggle/working/output",
         save_latents=False,
         lambda_a=0.2,
     )

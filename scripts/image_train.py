@@ -9,6 +9,7 @@ sys.path.append('/kaggle/working/guided-diffusion')
 
 import argparse
 import torch as th
+import torch.distributed as dist
 
 from guided_diffusion import dist_util, logger
 from guided_diffusion.image_datasets import load_data

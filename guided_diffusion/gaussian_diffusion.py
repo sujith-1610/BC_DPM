@@ -22,7 +22,7 @@ from scipy.ndimage import gaussian_filter
 
 vgg = VGGPerceptualLoss()
 
-lmat = scipy.io.loadmat('/kaggle/input/lpet-new/test_mat_2/test_mat_2/100_20220705_3_20220705_173034_104.mat')
+lmat = scipy.io.loadmat('/kaggle/input/lpet-new-1/test_mat_2/test_mat_2/100_20220705_3_20220705_173034_104.mat')
 if 'S' in lmat.keys():
     S = lmat['S']
 #else:

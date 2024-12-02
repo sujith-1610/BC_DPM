@@ -127,7 +127,7 @@ def create_argparser():
         model_path="",
         save_dir="/kaggle/working/output",
         save_latents=False,
-        lambda_a=0.1,
+        lambda_a=0.2,
     )
     defaults.update(model_and_diffusion_defaults())
     parser = argparse.ArgumentParser()

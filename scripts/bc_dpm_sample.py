@@ -125,7 +125,7 @@ def create_argparser():
         use_ddim=False,
         base_samples="",
         model_path="",
-        save_dir="",
+        save_dir="/kaggle/working/output",
         save_latents=False,
         lambda_a=0.1,
     )

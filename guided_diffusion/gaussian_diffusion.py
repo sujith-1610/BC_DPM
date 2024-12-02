@@ -39,12 +39,22 @@ S_sparse = coo_matrix(S)
 S_coo = S_sparse.tocoo()  # COO
 
 def generate_sino_witout_map(system, xtrue):
-    ytrue = system * xtrue
+    # Ensure the system matrix is dense (as required for multiplication)
+    system_dense = system.toarray()  # Convert sparse system matrix to a dense matrix
+
+    # Ensure xtrue is a column vector (shape (n, 1)) if it's not already
+    if len(xtrue.shape) == 1:
+        xtrue = xtrue[:, np.newaxis]  # Convert to column vector if it's a 1D array
+
+    # Now perform the matrix multiplication
+    ytrue = np.dot(system_dense, xtrue)  # Matrix multiplication
+
     scatter_percent = 10
     ri = np.ones(ytrue.shape) * scatter_percent / 100 * np.mean(ytrue[:])
     tmp = ytrue + ri
-    tmp[tmp <= 0] = 1e-5
-    yi = np.random.poisson(tmp)
+    tmp[tmp <= 0] = 1e-5  # Ensure no zero or negative values
+    yi = np.random.poisson(tmp)  # Poisson sampling
+
     return yi
 
 def performMLEM(sysmat, data, iters):

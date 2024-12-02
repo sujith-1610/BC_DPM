@@ -1,12 +1,14 @@
 import math
 import random
-
+import numpy as np
 from PIL import Image
 import blobfile as bf
+import mpi4py
 from mpi4py import MPI
-import numpy as np
+import scipy.io
+from scipy.io import loadmat
 from torch.utils.data import DataLoader, Dataset
-
+data_dir = "/kaggle/input/lpet-new-1/train_mat_2"
 
 def load_data(
     *,
@@ -21,7 +23,7 @@ def load_data(
     """
     For a dataset, create a generator over (images, kwargs) pairs.
 
-    Each images is an NCHW float tensor, and the kwargs dict contains zero or
+    Each image is an NCHW float tensor, and the kwargs dict contains zero or
     more keys, each of which map to a batched Tensor of their own.
     The kwargs dict can be used for class labels, in which case the key is "y"
     and the values are integer tensors of class labels.
@@ -72,7 +74,7 @@ def _list_image_files_recursively(data_dir):
     for entry in sorted(bf.listdir(data_dir)):
         full_path = bf.join(data_dir, entry)
         ext = entry.split(".")[-1]
-        if "." in entry and ext.lower() in ["jpg", "jpeg", "png", "gif"]:
+        if "." in entry and ext.lower() in ["jpg", "jpeg", "png", "gif", "mat"]:
             results.append(full_path)
         elif bf.isdir(full_path):
             results.extend(_list_image_files_recursively(full_path))
@@ -102,25 +104,58 @@ class ImageDataset(Dataset):
 
     def __getitem__(self, idx):
         path = self.local_images[idx]
-        with bf.BlobFile(path, "rb") as f:
-            pil_image = Image.open(f)
-            pil_image.load()
-        pil_image = pil_image.convert("RGB")
+        data = loadmat(path)  # Load .mat file content
 
-        if self.random_crop:
-            arr = random_crop_arr(pil_image, self.resolution)
-        else:
-            arr = center_crop_arr(pil_image, self.resolution)
+        if "img" not in data:  # Replace 'img' with the correct key if necessary
+            raise KeyError(f"'img' key not found in {path}")
 
+        mat_data = data["img"]  # Extract the image data from the .mat file
+        mat_data = mat_data.astype(np.float32)  # Convert to float if necessary
+
+        # Ensure contiguity and copy the numpy array to avoid negative strides
+        mat_data = np.ascontiguousarray(mat_data)  # Make it contiguous if it's not
+        mat_data = np.copy(mat_data)  # Ensure it's copied
+        
+        mat_data = np.squeeze(mat_data)  # Removes singleton dimension if present
+
+        # Normalize the data between -1 and 1 if necessary (optional)
+        mat_data = (mat_data - mat_data.min()) / (mat_data.max() - mat_data.min()) * 2 - 1
+
+        # Ensure that mat_data is of correct shape: (height, width, channels)
+        if mat_data.ndim == 2:  # If it's 2D, assume a single channel (grayscale)
+            mat_data = mat_data[:, :, np.newaxis]  # Add a dummy channel dimension
+            mat_data = (mat_data - np.min(mat_data)) / (np.max(mat_data) - np.min(mat_data))  # Normalize to [0, 1]
+            mat_data = (mat_data * 255).astype(np.uint8)  # Scale to [0, 255]
+
+        # Convert grayscale (1 channel) to RGB (3 channels)
+        mat_data = np.stack((mat_data, mat_data, mat_data), axis=-1)  # Shape becomes (256, 128, 3)
+
+        # Optional: Random flip for augmentation
         if self.random_flip and random.random() < 0.5:
-            arr = arr[:, ::-1]
+            mat_data = np.flip(mat_data, axis=1)
+            
 
-        arr = arr.astype(np.float32) / 127.5 - 1
+        # Ensure it's a contiguous array before conversion to tensor
+        mat_data = np.ascontiguousarray(mat_data)
+        mat_data = np.copy(mat_data)  # Make sure the array is a new copy
+        mat_data = np.squeeze(mat_data)
+        mat_data = mat_data.astype(np.float32) / 127.5 - 1
+        
+        # Convert to PyTorch format: [C, H, W] instead of [H, W, C]
+        mat_data = np.transpose(mat_data, (2, 0, 1))  # Shape becomes (3, 256, 128)
+
+        
 
         out_dict = {}
         if self.local_classes is not None:
             out_dict["y"] = np.array(self.local_classes[idx], dtype=np.int64)
-        return np.transpose(arr, [2, 0, 1]), out_dict
+
+        # Print the shape for debugging
+        #print(f"Shape of mat_data: {mat_data.shape}")
+        #print(f"Dtype of mat_data: {mat_data.dtype}")
+
+        # Return the data and optional labels
+        return mat_data, out_dict
 
 
 def center_crop_arr(pil_image, image_size):

@@ -68,7 +68,7 @@ def main():
     train_loop.run_loop()
 
     # Save the model after training completes
-    if dist_util.get_rank() == 0:  # Save only on the main process
+    if dist.get_rank() == 0:  # Save only on the main process
         save_path = args.save_model_path
         th.save(model.state_dict(), save_path)
         logger.log(f"Model saved to {save_path}")
@@ -83,7 +83,7 @@ def create_argparser():
         schedule_sampler="uniform",
         lr=1e-4,
         weight_decay=0.0,
-        lr_anneal_steps=1000,
+        lr_anneal_steps=100,
         batch_size=1,
         microbatch=-1,  # -1 disables microbatches
         ema_rate="0.9999",  # comma-separated list of EMA values

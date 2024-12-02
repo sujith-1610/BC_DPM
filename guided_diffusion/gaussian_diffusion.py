@@ -51,7 +51,7 @@ def generate_sino_witout_map(system, xtrue):
 
 
     # Now perform the matrix multiplication
-    ytrue = np.dot(system_dense, xtrue)  # Matrix multiplication
+    ytrue = np.dot(system_dense, np.transpose(xtrue))  # Matrix multiplication
 
     scatter_percent = 10
     ri = np.ones(ytrue.shape) * scatter_percent / 100 * np.mean(ytrue[:])

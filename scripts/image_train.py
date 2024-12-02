@@ -3,9 +3,12 @@ Train a diffusion model on images.
 """
 import sys
 import os
-#sys.path.append(os.path.abspath('/content/guided-diffusion'))
+
+# Ensure the guided-diffusion module is in the Python path
 sys.path.append('/kaggle/working/guided-diffusion')
+
 import argparse
+import torch as th
 
 from guided_diffusion import dist_util, logger
 from guided_diffusion.image_datasets import load_data
@@ -22,10 +25,12 @@ from guided_diffusion.train_util import TrainLoop
 def main():
     args = create_argparser().parse_args()
 
+    # Set up distributed training (if applicable)
     dist_util.setup_dist()
     logger.configure()
 
     logger.log("creating model and diffusion...")
+    # Create model and diffusion using the provided arguments
     model, diffusion = create_model_and_diffusion(
         **args_to_dict(args, model_and_diffusion_defaults().keys())
     )
@@ -33,6 +38,7 @@ def main():
     schedule_sampler = create_named_schedule_sampler(args.schedule_sampler, diffusion)
 
     logger.log("creating data loader...")
+    # Load data for training
     data = load_data(
         data_dir=args.data_dir,
         batch_size=args.batch_size,
@@ -41,7 +47,8 @@ def main():
     )
 
     logger.log("training...")
-    TrainLoop(
+    # Initialize and run the training loop
+    train_loop = TrainLoop(
         model=model,
         diffusion=diffusion,
         data=data,
@@ -57,10 +64,20 @@ def main():
         schedule_sampler=schedule_sampler,
         weight_decay=args.weight_decay,
         lr_anneal_steps=args.lr_anneal_steps,
-    ).run_loop()
+    )
+    train_loop.run_loop()
+
+    # Save the model after training completes
+    if dist_util.get_rank() == 0:  # Save only on the main process
+        save_path = args.save_model_path
+        th.save(model.state_dict(), save_path)
+        logger.log(f"Model saved to {save_path}")
 
 
 def create_argparser():
+    """
+    Create an argument parser with default arguments for training.
+    """
     defaults = dict(
         data_dir="",
         schedule_sampler="uniform",
@@ -75,6 +92,7 @@ def create_argparser():
         resume_checkpoint="",
         use_fp16=False,
         fp16_scale_growth=1e-3,
+        save_model_path="/kaggle/working/output",  # Path to save the trained model
     )
     defaults.update(model_and_diffusion_defaults())
     parser = argparse.ArgumentParser()

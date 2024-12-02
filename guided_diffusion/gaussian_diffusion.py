@@ -46,6 +46,10 @@ def generate_sino_witout_map(system, xtrue):
     if len(xtrue.shape) == 1:
         xtrue = xtrue[:, np.newaxis]  # Convert to column vector if it's a 1D array
 
+    # Reshape xtrue to match the number of columns in system_dense
+    xtrue = xtrue.reshape(-1, 128)  # Adjust this reshape according to your actual logic
+
+
     # Now perform the matrix multiplication
     ytrue = np.dot(system_dense, xtrue)  # Matrix multiplication
 

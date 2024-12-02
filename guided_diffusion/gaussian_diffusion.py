@@ -23,10 +23,10 @@ from scipy.ndimage import gaussian_filter
 vgg = VGGPerceptualLoss()
 
 
-directory = '/kaggle/input/lpet-new-1/test_mat_2/test_mat_2'
-filename = '100_20220705_3_20220705_173034_11.mat'
-file_path = os.path.join(directory, filename)
-lmat = scipy.io.loadmat(file_path)
+#directory = '/kaggle/input/lpet-new-1/test_mat_2/test_mat_2'
+#filename = '100_20220705_3_20220705_173034_11.mat'
+#file_path = os.path.join(directory, filename)
+lmat = scipy.io.loadmat('/kaggle/input/lpet-new-1/test_mat_2/test_mat_2/100_20220705_3_20220705_173034_112.mat')
 if 'S' in lmat.keys():
     S = lmat['S']
 #else:

@@ -1,16 +1,12 @@
 import sys
 import os
 
-#sys.path.append(os.path.abspath('./'))
+# Ensure the guided-diffusion module is in the Python path
 sys.path.append('/kaggle/working/BC_DPM')
 
 print(sys.path)
 import resizer
-
-
 import argparse
-
-
 
 import blobfile as bf
 import numpy as np
@@ -33,8 +29,9 @@ import math
 
 # added
 def load_reference(data_dir, batch_size, image_size, class_cond=False):
+    # Ensure the correct data_dir is passed to load_data
     data = load_data(
-        data_dir=data_dir,
+        data_dir=data_dir,  # Use the passed data_dir
         batch_size=batch_size,
         image_size=image_size,
         class_cond=class_cond,
@@ -49,12 +46,12 @@ def load_reference(data_dir, batch_size, image_size, class_cond=False):
 def main():
     args = create_argparser().parse_args()
 
-    # th.manual_seed(0)
-
+    # Set up distributed training (if applicable)
     dist_util.setup_dist()
     logger.configure(dir=args.save_dir)
 
     logger.log("creating model...")
+    # Create model and diffusion using the provided arguments
     model, diffusion = create_model_and_diffusion(
         **args_to_dict(args, model_and_diffusion_defaults().keys())
     )
@@ -76,8 +73,9 @@ def main():
     resizers = (down, up)
 
     logger.log("loading data...")
+    # Pass data_dir correctly here
     data = load_reference(
-        args.base_samples,
+        args.data_dir,  # Pass the data_dir from the arguments
         args.batch_size,
         image_size=args.image_size,
         class_cond=args.class_cond,
@@ -116,6 +114,9 @@ def main():
 
 
 def create_argparser():
+    """
+    Create an argument parser with default arguments for training.
+    """
     defaults = dict(
         clip_denoised=True,
         num_samples=3820,
@@ -124,11 +125,13 @@ def create_argparser():
         range_t=0,
         use_ddim=False,
         base_samples="",
-        model_path="/kaggle/working/model.pth",
-        save_dir="/kaggle/working",
+        model_path="/kaggle/working/model.pth",  # Path to your model
+        save_dir="/kaggle/working",  # Path to save output
         save_latents=False,
         lambda_a=0.2,
-        data_dir="",
+        data_dir="",  # This should be specified when running the script
+        class_cond=False,  # Adjust if you want class-conditioned sampling
+        image_size=256,  # Example image size, change as needed
     )
     defaults.update(model_and_diffusion_defaults())
     parser = argparse.ArgumentParser()

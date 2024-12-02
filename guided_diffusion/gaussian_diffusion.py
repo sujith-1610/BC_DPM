@@ -66,7 +66,8 @@ def performMLEM(sysmat, data, iters):
     for i in range(iters):
         projection = sysmat * guess.ravel()[:, None]
         #ratio = data.ravel()[:, None]/(projection.astype(np.float) + 1e-10)
-        ratio = data.ravel()[:, None]/(projection.astype(np.float64) + 1e-10)  # Use np.float64
+        #ratio = data.ravel()[:, None]/(projection.astype(np.float64) + 1e-10)  # Use np.float6
+        ratio = data.ravel()[:, None] / (projection.astype(np.float64).reshape(-1, 1) + 1e-10)
         backprojection = sysmat.T * ratio.ravel()[:, None]
         sensitivity = sysmat.T * np.ones_like(ratio.ravel()[:, None])
         guess = guess*backprojection/sensitivity.astype(np.float)

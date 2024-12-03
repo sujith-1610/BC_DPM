@@ -21,7 +21,7 @@ from guided_diffusion.image_datasets import load_data
 import math
 
 
-# Added: Function to load reference data
+# Function to load reference data
 def load_reference(data_dir, batch_size, image_size, class_cond=False):
     data = load_data(
         data_dir=data_dir,
@@ -39,9 +39,7 @@ def load_reference(data_dir, batch_size, image_size, class_cond=False):
 def main():
     args = create_argparser().parse_args()
 
-    # Skip distributed setup for CPU
-    dist_util.setup_dist = lambda: None
-
+    dist_util.setup_dist()  # Distributed setup for GPU
     logger.configure(dir=args.save_dir)
 
     logger.log("creating model...")
@@ -51,9 +49,9 @@ def main():
     model.load_state_dict(
         dist_util.load_state_dict(args.model_path, map_location="cpu")
     )
-    model.to(torch.device('cpu'))  # Move model to CPU
+    model.to(dist_util.dev())  # Move model to the GPU/Distributed device
     if args.use_fp16:
-        model = model.half()
+        model.convert_to_fp16()
     model.eval()
 
     logger.log("creating resizers...")
@@ -61,8 +59,8 @@ def main():
 
     shape = (args.batch_size, 3, args.image_size, args.image_size)
     shape_d = (args.batch_size, 3, int(args.image_size / args.down_N), int(args.image_size / args.down_N))
-    down = Resizer(shape, 1 / args.down_N).to(torch.device('cpu'))
-    up = Resizer(shape_d, args.down_N).to(torch.device('cpu'))
+    down = Resizer(shape, 1 / args.down_N).to(next(model.parameters()).device)
+    up = Resizer(shape_d, args.down_N).to(next(model.parameters()).device)
     resizers = (down, up)
 
     logger.log("loading data...")
@@ -77,7 +75,7 @@ def main():
     count = 0
     while count * args.batch_size < args.num_samples:
         model_kwargs = next(data)
-        model_kwargs = {k: v.to(torch.device('cpu')) for k, v in model_kwargs.items()}  # Move data to CPU
+        model_kwargs = {k: v.to(dist_util.dev()) for k, v in model_kwargs.items()}  # Move data to GPU/Distributed device
         sample = diffusion.p_sample_loop(
             model,
             (args.batch_size, 3, args.image_size, args.image_size),
@@ -101,6 +99,7 @@ def main():
         count += 1
         logger.log(f"created {count * args.batch_size} samples")
 
+    dist.barrier()
     logger.log("sampling complete")
 
 
@@ -113,8 +112,8 @@ def create_argparser():
         range_t=0,
         use_ddim=False,
         base_samples="",
-        model_path="kaggle.com/models/sujithgundapu/model.pth/output",
-        save_dir="kaggle.com/models/sujithgundapu/model.pth",
+        model_path="/kaggle/working/model.pth",
+        save_dir="/kaggle/working",
         save_latents=False,
         lambda_a=0.2,
         data_dir="",
